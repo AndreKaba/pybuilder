@@ -263,8 +263,8 @@ def get_packages_info(entry_paths=None):
     version, location, and installed files.
     """
     entry_paths = as_list(entry_paths) if entry_paths is not None else None
-    ws = WorkingSet(entry_paths)
     installed = {}
+    ws = WorkingSet(entry_paths)
     for dist in ws:
         package = _PackageInfo(canonicalize_name(dist.project_name),
                                dist.version,
@@ -307,7 +307,7 @@ def version_satisfies_spec(spec, version):
         spec = SpecifierSet(spec)
     if not isinstance(version, Version):
         version = Version(version)
-    return spec.contains(version)
+    return spec.contains(version, prereleases=bool(spec.prereleases))
 
 
 def should_update_package(version):

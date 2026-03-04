@@ -389,8 +389,8 @@ class RenderSetupScriptTest(PyBuilderTestCase):
         self.assert_line_by_line_equal("""#!/usr/bin/env python
 #   -*- coding: utf-8 -*-
 
-from distutils.core import setup, Extension
-from distutils.core.command.install import install as _install
+from setuptools import setup
+from setuptools.command.install import install as _install
 
 
 class install(_install):
@@ -477,8 +477,8 @@ if __name__ == '__main__':
         self.assert_line_by_line_equal("""#!/usr/bin/env python
 #   -*- coding: utf-8 -*-
 
-from distutils.core import setup, Extension
-from distutils.core.command.install import install as _install
+from setuptools import setup
+from setuptools.command.install import install as _install
 
 
 class install(_install):
@@ -728,7 +728,8 @@ class ExecuteDistUtilsTest(PyBuilderTestCase):
         execute_distutils(self.project, MagicMock(Logger), self.pyb_env, commands)
 
         self.pyb_env.run_process_and_wait.assert_has_calls(
-            [call(self.pyb_env.executable + [ANY, cmd], ANY, ANY) for cmd in commands])
+            [call(self.pyb_env.executable + [ANY, ANY, cmd, self.project.expand_path("$dir_dist")], ANY, ANY) for cmd in
+             commands])
 
     @patch("pybuilder.plugins.python.distutils_plugin.os.mkdir")
     @patch("pybuilder.plugins.python.distutils_plugin.open", create=True)
@@ -737,7 +738,8 @@ class ExecuteDistUtilsTest(PyBuilderTestCase):
 
         execute_distutils(self.project, MagicMock(Logger), self.pyb_env, [commands])
 
-        self.pyb_env.run_process_and_wait.assert_has_calls([call(self.pyb_env.executable + [ANY] + commands, ANY, ANY)])
+        self.pyb_env.run_process_and_wait.assert_has_calls(
+            [call(self.pyb_env.executable + [ANY, ANY] + commands + [self.project.expand_path("$dir_dist")], ANY, ANY)])
 
 
 class UploadTests(PyBuilderTestCase):
@@ -909,8 +911,9 @@ class TasksTest(PyBuilderTestCase):
         build_binary_distribution(self.project, MagicMock(Logger), self.reactor)
 
         self.pyb_env.run_process_and_wait.assert_has_calls(
-            [call(self.pyb_env.executable + [ANY, "clean", "--all", "sdist"], ANY, ANY),
-             call(self.pyb_env.executable + [ANY, "clean", "--all", "bdist_dumb"], ANY, ANY),
+            [call(self.pyb_env.executable + [ANY, ANY, "--sdist", self.project.expand_path("$dir_dist")], ANY, ANY),
+             call(self.pyb_env.executable + [ANY, ANY, "--bdist_dumb", self.project.expand_path("$dir_dist")], ANY,
+                  ANY),
              call(self.pyb_env.executable + ["-m", "twine", "check",
                                              self.project.expand_path("$dir_dist", "dist", "file1"),
                                              self.project.expand_path("$dir_dist", "dist", "file2")], ANY, ANY)])
@@ -926,8 +929,11 @@ class TasksTest(PyBuilderTestCase):
         build_binary_distribution(self.project, MagicMock(Logger), self.reactor)
 
         self.pyb_env.run_process_and_wait.assert_has_calls(
-            [call(self.pyb_env.executable + [ANY, "clean", "--all", "sdist", "--formats", "bztar"], ANY, ANY),
-             call(self.pyb_env.executable + [ANY, "clean", "--all", "bdist_dumb"], ANY, ANY),
+            [call(self.pyb_env.executable + [ANY, ANY, "--sdist", "-C--formats", "-Cbztar",
+                                             self.project.expand_path("$dir_dist")],
+                  ANY, ANY),
+             call(self.pyb_env.executable + [ANY, ANY, "--bdist_dumb", self.project.expand_path("$dir_dist")], ANY,
+                  ANY),
              call(self.pyb_env.executable + ["-m", "twine", "check",
                                              self.project.expand_path("$dir_dist", "dist", "file1"),
                                              self.project.expand_path("$dir_dist", "dist", "file2")], ANY, ANY)])
