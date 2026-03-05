@@ -389,7 +389,7 @@ class RenderSetupScriptTest(PyBuilderTestCase):
         self.assert_line_by_line_equal("""#!/usr/bin/env python
 #   -*- coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import setup, Extension
 from setuptools.command.install import install as _install
 
 
@@ -477,7 +477,7 @@ if __name__ == '__main__':
         self.assert_line_by_line_equal("""#!/usr/bin/env python
 #   -*- coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import setup, Extension
 from setuptools.command.install import install as _install
 
 
